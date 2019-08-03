@@ -12,12 +12,36 @@ class CPdf extends CI_Controller {
 
     }
 
-    /***default functin, redirects to login page if no admin logged in yet***/
-    public function index()
-    {
+    public function send_email($from, $to, $cc, $subject, $title, $content, $upload_pdf){
+    
+	    $date=date("Y-m-d");
+	    $ip_server = $_SERVER['SERVER_ADDR'];
+	    
+	    $this->load->library('email');
+	    $this->load->library('parser');
+	    $config['protocol']    = 'smtp';
+	    $config['smtp_host']    = 'ssl://mail.comgrap.store';
+	    $config['smtp_port']    = '465';
+	    $config['smtp_timeout'] = '7';
+	    $config['smtp_user']    = 'compras@comgrap.store';
+	    $config['smtp_pass']    = 'Postven2019.';
+	    $config['charset']    = 'utf-8';
+	    $config['newline']    = "\r\n";
+	    $config['mailtype'] = 'html'; // or html
+	    $config['validation'] = TRUE; // bool whether to validate email or not
+	    $this->email->initialize($config);
+	    $this->email->from("$from", "$title");
+	    $this->email->to("$to");
+	    $this->email->cc("$cc");
+	    $this->email->subject("$subject");
+	    $this->email->message($content);
+        $this->email->attach("upload/$upload_pdf");
 
-
-
+        if($this->email->send()){
+	    	echo 'Email send.';
+         } else {
+         	echo $this->email->print_debugger();
+        }
 	}
 	
 
@@ -30,8 +54,10 @@ class CPdf extends CI_Controller {
 
     function cart_pdf(){
 
+
+
 		
-        /*$grand_total_price = $this->input->post('grand_total_price');
+       /*$grand_total_price = $this->input->post('grand_total_price');
         $name=$this->input->post('name');
         $email=$this->input->post('email');
         $data_arrc=$this->input->post('data_arr');
@@ -40,9 +66,12 @@ class CPdf extends CI_Controller {
             $json[]=json_decode($valor);
 		}*/
 
+
 		$grand_total_price = 363625030;
 		$name = "Jesus Laya";
-		
+		$email= "fserrano100@gmail.com";
+
+
 		$data_arrc = array(
 
 			array(
@@ -57,6 +86,8 @@ class CPdf extends CI_Controller {
 			)
 
 		);
+
+
 
 
 		
@@ -90,8 +121,9 @@ class CPdf extends CI_Controller {
 		$this->pdf->SetFont('Arial', 'B', 13);
 		$this->pdf->Cell(30);
 		$this->pdf->Cell(120, 10, utf8_decode('Cotización'), 0, 0, 'C');
+		$this->pdf->SetFont('Arial', '', 13);
 		$this->pdf->Ln(15);
-		$this->pdf->Cell(120, 10, utf8_decode('Nombre:'), 0, 0, 'L');
+		$this->pdf->Cell(120, 10, utf8_decode("Nombre: $name"), 0, 0, 'L');
 		
 		$this->pdf->SetFont('Arial', 'B', 8);
 		$this->pdf->SetTextColor(0, 0, 0);  # COLOR DEL TEXTO
@@ -116,7 +148,26 @@ class CPdf extends CI_Controller {
 		$this->pdf->Cell(36, 5, $this->Format_number($grand_total_price), 'TBLR', 1, 'C', '1');
 		$this->pdf->Ln(15);
 
-		$this->pdf->Output('Cotizacion.pdf','I');
+		$date_time = date('Y-m-d H:i:s');
+
+		$this->pdf->Output("upload/Cotizacion$date_time.pdf",'F');
+
+		$upload_pdf = "Cotizacion$date_time.pdf";
+
+
+		// Envio del servicio Email
+		$from = "compras@comgrap.store";
+        $to = "comgrap@comgrap.cl";
+        $cc = $email;
+		$subject = "Cotización";
+		$title = "Cotización para $name";
+		$content = "Se ha generado una nueva Cotización para $name";
+		// Salida de email
+		$this->send_email($from, $to, $cc, $subject, $title, $content, $upload_pdf);
+
+
+
+
 
   	}
 
