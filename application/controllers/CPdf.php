@@ -53,45 +53,21 @@ class CPdf extends CI_Controller {
 
 
     function cart_pdf(){
-
-
-
 		
-       /*$grand_total_price = $this->input->post('grand_total_price');
         $name=$this->input->post('name');
         $email=$this->input->post('email');
+       	#$grand_total_price = $this->input->post('grand_total_price');
         $data_arrc=$this->input->post('data_arr');
-        foreach ($data_arrc as $data_arr) {
-            $valor=str_replace('\"','"',"$data_arr");
-            $json[]=json_decode($valor);
-		}*/
+
+        /*$name= "Jesus Laya";
+        $email= "jesusgerard2008@gmail.com";
+       	$grand_total_price = 366567059;
+       	$data_arrc = '[{"price":"1892190","sku":"829L1-WW9193-T743","quantity":3,"name":"Revit 2020 Commercial New"}
+			,{"price":"348561","sku":"057L1-WW3033-T744","quantity":1,"name":"AutoCAD LT 2020 Commercial New"}]';*/
+        
 
 
-		$grand_total_price = 363625030;
-		$name = "Jesus Laya";
-		$email= "fserrano100@gmail.com";
-
-
-		$data_arrc = array(
-
-			array(
-				'description' => "Revit 2020 Commercial New Single-user ELD Annual Subscription",
-				'sku' => "829L1-WW2859-T981",
-				'price' => "1892190",
-			),
-			array(
-				'description' => "Civil 3D 2020 Commercial New Single-user ELD Annual Subscription",
-				'sku' => "237L1-WW8695-T548",
-				'price' => "1732840",
-			)
-
-		);
-
-
-
-
-		
-
+	
 		require_once(APPPATH.'third_party/fpdf/fpdf.php');
 
 		 // estas son las configuraciones para la generacion del PDF
@@ -132,25 +108,45 @@ class CPdf extends CI_Controller {
 
 		$this->pdf->Ln(15);
 		$this->pdf->SetFont('Arial', '', 8);
-		$this->pdf->Cell(100, 5, utf8_decode('Descripción'), 'TBLR', 0, 'C', '1');
-		$this->pdf->Cell(36, 5, 'SKU', 'TBLR', 0, 'C', '1');
-		$this->pdf->Cell(36, 5, 'Precio', 'TBLR', 1, 'C', '1');
+		$this->pdf->Cell(70, 5, utf8_decode('Descripción'), 'TBLR', 0, 'C', '1');
+		$this->pdf->Cell(30, 5, 'SKU', 'TBLR', 0, 'C', '1');
+		$this->pdf->Cell(12, 5, 'Cant', 'TBLR', 0, 'C', '1');
+		$this->pdf->Cell(30, 5, 'Precio', 'TBLR', 0, 'C', '1');
+		$this->pdf->Cell(30, 5, 'Sub total', 'TBLR', 1, 'R', '1');
 
-		foreach ($data_arrc as $value) {
+		$json = json_decode($data_arrc);
+		$sum_price = 0.00;
+		$sum_sub_total = 0.00;
+		foreach ($json as $value) {
+
+			$price = $value->price;
+			$sku = $value->sku;
+			$quantity = $value->quantity;
+			$name_product = $value->name;
+			$sub_total = (float)$price * (float)$quantity;
+			$sum_price += $price;
+			$sum_sub_total += $sub_total;
+
 			$this->pdf->SetFont('Arial', '', 8);
-			$this->pdf->Cell(100, 5, utf8_decode($value['description']), 'TBLR', 0, 'C', '1');
-			$this->pdf->Cell(36, 5, $value['sku'], 'TBLR', 0, 'C', '1');
-			$this->pdf->Cell(36, 5, $this->Format_number($value['price']), 'TBLR', 1, 'C', '1');
+			$this->pdf->Cell(70, 5, utf8_decode($name_product), 'TBLR', 0, 'L', '1');
+			$this->pdf->Cell(30, 5, $sku, 'TBLR', 0, 'C', '1');
+			$this->pdf->Cell(12, 5, $quantity, 'TBLR', 0, 'C', '1');
+			$this->pdf->Cell(30, 5, $this->Format_number($price), 'TBLR', 0, 'R', '1');
+			$this->pdf->Cell(30, 5, $this->Format_number($sub_total), 'TBLR', 1, 'R', '1');
 		}
 
-		$this->pdf->Cell(100, 5, "", 'TBLR', 0, 'C', '1');
-		$this->pdf->Cell(36, 5, "", 'TBLR', 0, 'C', '1');
-		$this->pdf->Cell(36, 5, $this->Format_number($grand_total_price), 'TBLR', 1, 'C', '1');
+		$this->pdf->Cell(70, 5, "", 'TBL', 0, 'L', '1');
+		$this->pdf->Cell(30, 5, "", 'TB', 0, 'C', '1');
+		$this->pdf->Cell(12, 5, "", 'TB', 0, 'C', '1');
+		$this->pdf->Cell(30, 5, $this->Format_number($sum_price), 'TBLR', 0, 'R', '1');
+		$this->pdf->Cell(30, 5, $this->Format_number($sum_sub_total), 'TBLR', 1, 'R', '1');
+		
 		$this->pdf->Ln(15);
 
 		$date_time = date('Y-m-d H:i:s');
 
 		$this->pdf->Output("upload/Cotizacion$date_time.pdf",'F');
+
 
 		$upload_pdf = "Cotizacion$date_time.pdf";
 
